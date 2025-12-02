@@ -37,7 +37,7 @@ Each Laravel project must follow the standard structure (`public/` directory, et
 2. **Create or copy Laravel projects** into `src/`:
 
    ```bash
-   cd /Users/phuc.pham/workspace/share-docker
+   cd ~/workspace/share-docker
    mkdir -p src
    # Example: create a new Laravel project
    # composer create-project laravel/laravel src/project01
