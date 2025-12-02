@@ -1,0 +1,93 @@
+version: "3.3"
+services:
+  database:
+    image: mysql:8.0
+    container_name: docker-multi-db
+    command: --innodb-use-native-aio=0 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      - MYSQL_DATABASE=${DB_NAME:-project_database}
+      - MYSQL_USER=${DB_USER:-project}
+      - MYSQL_PASSWORD=${DB_PASS:-project123!db}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS:-project123!db}
+      - TZ=${TZ:-Asia/Tokyo}
+    volumes:
+      - ./docker/db-data:/var/lib/mysql
+      - ./logs:/var/log/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - ${DB_PORT:-3306}:3306
+    stdin_open: true
+    tty: true
+    restart: always
+  app:
+    container_name: docker-multi-app
+    build:
+      context: ./docker/php/
+      args:
+        - TZ=${TZ:-Asia/Tokyo}
+    ports:
+      - ${APP_PORT:-8081}:8000
+    volumes:
+      - ${SOURCE:-./src}:${WORKING_DIR:-/var/www}:delegated
+      - ./logs:/var/log/php
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/ash:/etc/profile.d
+      - ./docker/php/psysh:/root/.config/psysh
+      # - ./docker/php/supervisord.conf:/etc/supervisord.conf
+      # - ./docker/php/supervisord.d:/etc/supervisord.d
+    working_dir: ${WORKING_DIR:-/var/www}
+    environment:
+      - TZ=${TZ:-Asia/Tokyo}
+    restart: always
+    # entrypoint: ["/bin/sh", "-c", "/usr/bin/supervisord -n -c /etc/supervisord.conf"]
+
+  web:
+    build:
+      context: ./docker/apache
+    depends_on:
+      - app
+    container_name: docker-multi-web
+    ports:
+      - ${WEB_PORT:-8000}:80
+    volumes:
+      - ${SOURCE:-./src}:${WORKING_DIR:-/var/www}:delegated
+    environment:
+      - TZ=${TZ:-Asia/Tokyo}
+      - WORKING_DIR=${WORKING_DIR:-/var/www}
+    restart: always
+
+  redis:
+    image: "redis:6.2-alpine"
+    container_name: docker-multi-web-redis
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: always
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: docker-multi-web-mailhog
+    ports:
+      - ${MAILHOG_SMTP_PORT:-1025}:1025
+      - ${MAILHOG_WEBUI_PORT:-8026}:8025
+    restart: always
+
+  minio:
+    image: minio/minio:latest
+    container_name: docker-multi-web-minio
+    command:
+      - server
+      - --console-address
+      - :${MINIO_PORT:-9001}
+      - /data
+    ports:
+      - ${MINIO_SERVER_PORT:-9000}:9000
+      - ${MINIO_PORT:-9001}:9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+    volumes:
+      - ./docker/minio/storage:/data
+    restart: always
