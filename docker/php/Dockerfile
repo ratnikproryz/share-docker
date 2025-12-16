@@ -31,7 +31,7 @@ RUN apk add --update --no-cache \
     linux-headers
 RUN cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
   echo ${TZ} > /etc/timezone && \
-  pecl install xdebug-3.3.1 && \
+  pecl install xdebug && \
   pecl install imagick && \
   git clone https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis && \
   apk del .build-dependencies && \
