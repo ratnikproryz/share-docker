@@ -33,18 +33,28 @@ Each Laravel project must follow the standard structure (`public/` directory, et
 ## 2. First-time setup
 
 1. **Clone this repo** (or copy into your project root).
+```bash
+git clone https://github.com/ratnikproryz/share-docker.git
+```
 
-2. **Create or copy Laravel projects** into `src/`:
+2. **Create .env for docker**
+
+Note: Change the .env if you need
+```bash
+cd share-docker
+cp .env.example .env
+```
+
+3. **Create or copy Laravel projects** into `src/`:
 
    ```bash
-   cd ~/workspace/share-docker
-   mkdir -p src
+   cd share-docker/src
    # Example: create a new Laravel project
    # composer create-project laravel/laravel src/project01
    # composer create-project laravel/laravel src/project02
    ```
 
-3. **Configure local hostnames**  
+4. **Configure local hostnames**  
    Edit `/etc/hosts` (macOS/Linux) and add:
 
    ```text
